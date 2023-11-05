@@ -77,6 +77,11 @@ impl Parser {
         assert!(self.consume_char() == '<');
         let tag_name = self.parse_tag_name();
         let attrs = self.parse_attributes();
+        if self.next_char() == '/' {
+            self.consume_char();
+            assert!(self.consume_char() == '>');
+            return dom::Node::elem(tag_name, attrs, Vec::new());
+        }
         assert!(self.consume_char() == '>');
 
         let children = self.parse_nodes();
@@ -108,7 +113,7 @@ impl Parser {
         let mut attributes = HashMap::new();
         loop {
             self.consume_whitespace();
-            if self.next_char() == '>' {
+            if self.next_char() == '>' || self.next_char() == '/' {
                 break;
             }
             let (name, value) = self.parse_attr();

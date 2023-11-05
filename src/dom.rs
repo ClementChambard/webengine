@@ -1,17 +1,17 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub struct Node {
-    children: Vec<Node>,
-    node_type: NodeType,
+    pub children: Vec<Node>,
+    pub node_type: NodeType,
 }
 
-enum NodeType {
+pub enum NodeType {
     Text(String),
     Element(ElementData),
 }
 
-struct ElementData {
-    tag_name: String,
+pub struct ElementData {
+    pub tag_name: String,
     attributes: AttrMap,
 }
 
@@ -35,7 +35,20 @@ impl Node {
         }
     }
 
-    pub fn print(&self, indent: i32) {
+    pub fn print_self(&self) {
+        match &self.node_type {
+            NodeType::Text(s) => println!("{s}"),
+            NodeType::Element(edata) => {
+                let mut attr_str = String::new();
+                for (k, v) in edata.attributes.iter() {
+                    attr_str.push_str(&format!(" {k}=\"{v}\""));
+                }
+                println!("<{}{attr_str} />", edata.tag_name);
+            }
+        }
+    }
+
+    pub fn _print(&self, indent: i32) {
         let mut indent_str = String::new();
         for _ in 0..indent {
             indent_str.push(' ');
@@ -52,11 +65,28 @@ impl Node {
                 } else {
                     println!("{indent_str}<{}{attr_str}>", edata.tag_name);
                     for c in &self.children {
-                        c.print(indent + 2);
+                        c._print(indent + 2);
                     }
                     println!("{indent_str}</{}>", edata.tag_name);
                 }
             }
         }
+    }
+}
+
+impl ElementData {
+    pub fn id(&self) -> Option<&String> {
+        self.get_attr("id")
+    }
+
+    pub fn classes(&self) -> HashSet<&str> {
+        match self.attributes.get("class") {
+            Some(classlist) => classlist.split(' ').collect(),
+            None => HashSet::new(),
+        }
+    }
+
+    pub fn get_attr(&self, name: &str) -> Option<&String> {
+        self.attributes.get(name)
     }
 }
